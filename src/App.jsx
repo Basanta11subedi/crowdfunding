@@ -425,7 +425,7 @@ function CrowdfundingApp() {
               
               {/* GitHub */}
               <a 
-                href="https://github.com/yourusername" 
+                href="https://github.com/Basanta11subedi/crowdfunding.git" 
                 className="text-indigo-300 hover:text-cyan-400 transition-colors flex items-center"
                 target="_blank" 
                 rel="noopener noreferrer"
