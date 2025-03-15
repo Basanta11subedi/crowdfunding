@@ -1,0 +1,141 @@
+# This smart contract is deployed in Polygon testnet.
+
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Crowdfunding {
+    struct Campaign {
+        address payable creator;
+        string title;
+        string description;
+        string evidence;
+        uint fundingGoal;
+        uint deadline;
+        uint amountRaised;
+        bool isCompleted;
+        mapping(address => uint) contributions;
+    }
+
+    address public owner;
+    uint public campaignCount;
+    uint public totalFeesCollected;
+    mapping(uint => Campaign) public campaigns;
+
+    event CampaignCreated(
+        uint campaignId,
+        address creator,
+        string title,
+        string evidence,
+        uint fundingGoal,
+        uint deadline
+    );
+    event ContributionMade(uint campaignId, address contributor, uint amount);
+    event FundsWithdrawn(uint campaignId, uint amountToCreator, uint feeToContract);
+    event ContractFeeWithdrawn(uint amount);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action");
+        _;
+    }
+
+    modifier isCampaignActive(uint _campaignId) {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(block.timestamp < campaign.deadline, "Campaign deadline passed");
+        require(!campaign.isCompleted, "Campaign is completed");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function createCampaign(
+        string memory _title,
+        string memory _description,
+        string memory _evidence,
+        uint _fundingGoal,
+        uint _duration
+    ) external {
+        require(_fundingGoal > 0, "Funding goal must be greater than 0");
+        require(_duration > 0, "Duration must be greater than 0");
+
+        Campaign storage newCampaign = campaigns[campaignCount];
+        newCampaign.creator = payable(msg.sender);
+        newCampaign.title = _title;
+        newCampaign.description = _description;
+        newCampaign.evidence = _evidence;
+        newCampaign.fundingGoal = _fundingGoal;
+        newCampaign.deadline = block.timestamp + _duration;
+
+        emit CampaignCreated(campaignCount, msg.sender, _title, _evidence, _fundingGoal, newCampaign.deadline);
+
+        campaignCount++;
+    }
+
+    function contribute(uint _campaignId) external payable isCampaignActive(_campaignId) {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(msg.value > 0, "Contribution must be greater than 0");
+        require(campaign.amountRaised < campaign.fundingGoal, "Funding goal already reached");
+
+        campaign.contributions[msg.sender] += msg.value;
+        campaign.amountRaised += msg.value;
+
+        emit ContributionMade(_campaignId, msg.sender, msg.value);
+    }
+
+    function withdrawFunds(uint _campaignId) external {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(msg.sender == campaign.creator, "Only the creator can withdraw funds");
+        require(!campaign.isCompleted, "Funds already withdrawn");
+        require(
+            block.timestamp >= campaign.deadline || campaign.amountRaised >= campaign.fundingGoal,
+            "Campaign is still active"
+        );
+
+        uint fee = (campaign.amountRaised * 2) / 100; // 2% fee
+        uint amountToCreator = campaign.amountRaised - fee;
+
+        campaign.isCompleted = true;
+        totalFeesCollected += fee;
+
+        (bool success, ) = campaign.creator.call{value: amountToCreator}("");
+        require(success, "Transfer to creator failed");
+
+        emit FundsWithdrawn(_campaignId, amountToCreator, fee);
+    }
+
+    function withdrawContractFees() external onlyOwner {
+        require(totalFeesCollected > 0, "No fees available to withdraw");
+        uint amount = totalFeesCollected;
+        totalFeesCollected = 0;
+
+        (bool success, ) = owner.call{value: amount}("");
+        require(success, "Transfer to owner failed");
+
+        emit ContractFeeWithdrawn(amount);
+    }
+
+    function getCampaignDetails(uint _campaignId) external view returns (
+        address creator,
+        string memory title,
+        string memory description,
+        string memory evidence,
+        uint fundingGoal,
+        uint deadline,
+        uint amountRaised,
+        bool isCompleted
+    ) {
+        Campaign storage campaign = campaigns[_campaignId];
+        return (
+            campaign.creator,
+            campaign.title,
+            campaign.description,
+            campaign.evidence,
+            campaign.fundingGoal,
+            campaign.deadline,
+            campaign.amountRaised,
+            campaign.isCompleted
+        );
+    }
+}

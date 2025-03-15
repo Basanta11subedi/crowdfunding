@@ -1,0 +1,96 @@
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.connect-button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.account-info {
+  background-color: #2ecc71;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+.create-campaign {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 40px;
+}
+
+.create-campaign form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+.campaigns {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.campaign-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.campaign-details {
+  margin: 15px 0;
+}
+
+.contribute-section {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.completed {
+  color: #2ecc71;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.2em;
+  color: #666;
+}
